@@ -14,7 +14,7 @@ FROM alpine:3.20
 
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup 
+RUN apk add --no-cache curl && addgroup -S appgroup && adduser -S appuser -G appgroup 
 
 COPY --from=build /app/inventory-service .
 RUN chown appuser:appgroup /app/inventory-service
