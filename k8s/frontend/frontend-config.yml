@@ -1,0 +1,6 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: frontend-config
+data:
+  FRONTEND_API_URL: "http://backend-service:8080"
