@@ -176,3 +176,6 @@ docker-compose.override.yml
 
 # Misc
 *.local
+
+#tmp
+helm/
