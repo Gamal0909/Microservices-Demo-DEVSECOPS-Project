@@ -141,3 +141,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+#terraform files
+terraform.tfstate
+terraform.tfstate.backup
+terraform.log
+.terraform/
+.terraform.lock.hcl
+.terraform-version

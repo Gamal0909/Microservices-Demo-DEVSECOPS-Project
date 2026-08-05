@@ -3,12 +3,13 @@ module "eks" {
   version         = "~> 20.0"
   
   cluster_name    = "microservices-project-eks"
-  cluster_version = "1.28"
+  cluster_version = "1.32"
   
-  vpc_id          = module.vpc.vpc_id
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
-  endpoint_public_access  = true
-  endpoint_private_access = true
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = true
   
   eks_managed_node_groups = {
     eks_nodes = {
@@ -17,8 +18,6 @@ module "eks" {
       min_size     = 2
 
       instance_types = ["t3.small"]
-
-      key_name = var.key_name
 
       tags = {
         Name = "eks-node-group"
