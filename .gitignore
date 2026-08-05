@@ -176,6 +176,13 @@ docker-compose.override.yml
 
 # Misc
 *.local
-
+#terraform files
+terraform.tfstate
+terraform.tfstate.backup
+terraform.log
+.terraform/
+.terraform.lock.hcl
+.terraform-version
+*terraform/  
 #tmp
 helm/

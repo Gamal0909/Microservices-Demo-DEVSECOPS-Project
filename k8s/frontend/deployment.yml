@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend-container
-          image: front-local:v1
+          image: gamal0909/forntend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
