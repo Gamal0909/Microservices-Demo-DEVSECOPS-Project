@@ -49,10 +49,12 @@ jobs:
         if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
         uses: SonarSource/sonarqube-scan-action@v3
         env:
-          #SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: "app/frontend"
+          args: >
+            -Dsonar.projectKey=ecommerce-frontend
 
       - name: sonarqube scan-cart
         if: ${{ needs.detect-changes.outputs.cart == 'true' }}
@@ -62,6 +64,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: "app/cart-service-node"
+          args: >
+            -Dsonar.projectKey=ecommerce-cart-service
 
   scan-product-java:
     needs: detect-changes
@@ -83,9 +87,9 @@ jobs:
         run: |
           cd app/product-service-java
           mvn clean verify sonar:sonar \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.projectKey=ecommerce-product-service-java
-  #            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=ecommerce-product-service-java \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
 
   scan-inventory-go:
     needs: detect-changes
@@ -110,6 +114,8 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        #  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: "app/inventory-service-go"
+          args: >
+            -Dsonar.projectKey=ecommerce-inventory-service
