@@ -125,6 +125,9 @@ jobs:
     needs: [scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
