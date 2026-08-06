@@ -36,3 +36,80 @@ jobs:
             frontend: 'app/frontend/**'
             inventory: 'app/inventory-service-go/**'
             product: 'app/product-service-java/**'
+
+  scan-frontend-and-cart-node:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.cart == 'true' || needs.detect-changes.outputs.frontend == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: sonarqube scan-frontend
+        if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          #SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: "app/frontend"
+
+      - name: sonarqube scan-cart
+        if: ${{ needs.detect-changes.outputs.cart == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          #SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: "app/cart-service-node"
+
+  scan-product-java:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.product == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Build & SonarQube Scan Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        run: |
+          cd app/product-service-java
+          mvn clean verify sonar:sonar \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=ecommerce-product-service-java
+  #            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+
+  scan-inventory-go:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.inventory == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build & Unit Test Inventory Service
+        if: ${{ needs.detect-changes.outputs.inventory == 'true' }}
+        run: |
+          cd app/inventory-service-go
+          go test -short -coverprofile=coverage.out ./...
+
+      - name: SonarCloud Scan - Inventory Service
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        #  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: "app/inventory-service-go"
