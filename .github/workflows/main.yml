@@ -1,11 +1,38 @@
 name: CICD
-on: 
+on:
+  push:
+    branches:
+      - kubernetes-files
+      - containerized-App
+    paths:
+      - "app/**"
+  pull_request:
+    branches:
+      - main
+      - containerized-App
+
+    paths:
+      - "app/**"
   workflow_dispatch:
 
 jobs:
-  print:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      cart: ${{ steps.filter.outputs.cart}}
+      frontend: ${{ steps.filter.outputs.frontend}}
+      inventory: ${{ steps.filter.outputs.inventory}}
+      product: ${{ steps.filter.outputs.product}}
     steps:
-      - name: print hello
-        run: |
-          echo "hello world"
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: dorny/paths-filter
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            cart: 'app/cart-service-node/**'
+            frontend: 'app/frontend/**'
+            inventory: 'app/inventory-service-go/**'
+            product: 'app/product-service-java/**'
