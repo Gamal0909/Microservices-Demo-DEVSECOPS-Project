@@ -4,15 +4,12 @@ on:
     branches:
       - kubernetes-files
       - containerized-App
-    paths:
-      - "app/**"
+
   pull_request:
     branches:
       - main
       - containerized-App
 
-    paths:
-      - "app/**"
   workflow_dispatch:
 
 jobs:
