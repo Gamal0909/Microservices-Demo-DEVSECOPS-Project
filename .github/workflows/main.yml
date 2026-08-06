@@ -122,8 +122,11 @@ jobs:
             -Dsonar.projectName=ecommerce-microservices
 
   build-and-scan-containers:
-    needs: [scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
-    if: always()
+    needs: [detect-changes, scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled()
     runs-on: ubuntu-latest
     permissions:
       contents: read
