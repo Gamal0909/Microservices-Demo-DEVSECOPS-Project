@@ -123,6 +123,7 @@ jobs:
 
   build-and-scan-containers:
     needs: [scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
+    if: always()
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -163,7 +164,7 @@ jobs:
           load: true # Loads image into local Docker daemon for scanning
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:"latest"
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
 
       - name: Trivy Scan Image
         uses: aquasecurity/trivy-action@master
@@ -178,4 +179,4 @@ jobs:
         if: success()
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:"latest"
+          docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
