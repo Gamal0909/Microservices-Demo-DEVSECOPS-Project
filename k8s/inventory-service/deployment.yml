@@ -12,13 +12,12 @@ spec:
         app: inventory-app
     spec:
       containers:
-      - name: inventory-container
-        image: gamal0909/inventory-service:latest
-        imagePullPolicy: IfNotPresent
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 8083
-
+        - name: inventory-container
+          image: ghcr.io/gamal0909/inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8083

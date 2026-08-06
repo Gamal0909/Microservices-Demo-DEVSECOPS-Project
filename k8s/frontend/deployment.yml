@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend-container
-          image: gamal0909/forntend:latest
+          image: ghcr.io/gamal0909/frontend-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

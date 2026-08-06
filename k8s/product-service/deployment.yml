@@ -12,12 +12,15 @@ spec:
         app: product-app
     spec:
       containers:
-      - name: product-container
-        image: gamal0909/product-service:latest
-        imagePullPolicy: IfNotPresent
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 8081
+        - name: product-container
+          image: ghcr.io/gamal0909/product-service:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8081

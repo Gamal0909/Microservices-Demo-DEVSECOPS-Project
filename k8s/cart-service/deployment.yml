@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cart-container
-          image: gamal0909/cart-service:latest
+          image: ghcr.io/gamal0909/cart-service:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:
