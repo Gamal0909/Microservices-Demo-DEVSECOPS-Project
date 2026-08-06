@@ -146,6 +146,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: Set lowercase registry owner
+        run: echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -163,13 +166,13 @@ jobs:
           file: ${{ matrix.directory }}/Dockerfile
           load: true # Loads image into local Docker daemon for scanning
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:latest
 
       - name: Trivy Scan Image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}"
+          image-ref: "ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
@@ -178,5 +181,5 @@ jobs:
       - name: Push Container Image to Registry
         if: success()
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
+          docker push ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
+          docker push ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:latest
