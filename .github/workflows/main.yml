@@ -30,7 +30,6 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v4
         with:
-          base: HEAD~1
           filters: |
             cart:
               - 'app/cart-service-node/**'
