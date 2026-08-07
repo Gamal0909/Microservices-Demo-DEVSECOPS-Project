@@ -14,7 +14,7 @@ spec:
       containers:
         - name: product-container
           image: ghcr.io/gamal0909/product-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             requests:
               memory: "256Mi"

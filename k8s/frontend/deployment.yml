@@ -17,7 +17,7 @@ spec:
       containers:
         - name: frontend-container
           image: ghcr.io/gamal0909/frontend-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           envFrom:

@@ -15,7 +15,7 @@ spec:
       containers:
         - name: cart-container
           image: ghcr.io/gamal0909/cart-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             requests:
               memory: "64Mi"

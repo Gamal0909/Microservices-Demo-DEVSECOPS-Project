@@ -14,7 +14,7 @@ spec:
       containers:
         - name: inventory-container
           image: ghcr.io/gamal0909/inventory-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             limits:
               memory: "128Mi"
