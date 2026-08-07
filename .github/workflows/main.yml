@@ -53,6 +53,15 @@ jobs:
           args: >
             -Dsonar.projectKey=ecommerce-microservices
             -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=sonar-report/frontend-report-task.txt
+
+      - name: Upload SonarQube Report - Frontend
+        if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-frontend
+          path: sonar-report/
+          if-no-files-found: warn
 
       - name: sonarqube scan-cart
         if: ${{ needs.detect-changes.outputs.cart == 'true' }}
@@ -65,6 +74,15 @@ jobs:
           args: >
             -Dsonar.projectKey=ecommerce-microservices
             -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=sonar-report/cart-report-task.txt
+
+      - name: Upload SonarQube Report - Cart
+        if: ${{ needs.detect-changes.outputs.cart == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-cart
+          path: sonar-report/
+          if-no-files-found: warn
 
   scan-product-java:
     needs: detect-changes
@@ -84,12 +102,22 @@ jobs:
       - name: Build & SonarQube Scan Product Service
         if: ${{ needs.detect-changes.outputs.product == 'true' }}
         run: |
+          mkdir -p sonar-report
           cd app/product-service-java
           mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.projectKey=ecommerce-microservices \
             -Dsonar.projectName=ecommerce-microservices \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.scanner.metadataFilePath=../../sonar-report/product-report-task.txt
+
+      - name: Upload SonarQube Report - Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-product
+          path: sonar-report/
+          if-no-files-found: warn
 
   scan-inventory-go:
     needs: detect-changes
@@ -120,6 +148,14 @@ jobs:
           args: >
             -Dsonar.projectKey=ecommerce-microservices
             -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=sonar-report/inventory-report-task.txt
+
+      - name: Upload SonarQube Report - Inventory Service
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-inventory
+          path: sonar-report/
+          if-no-files-found: warn
 
   build-and-scan-containers:
     needs: [detect-changes, scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
@@ -179,10 +215,18 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: "ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}"
-          format: "table"
+          format: "json"
+          output: "trivy-report-${{ matrix.service }}.json"
           exit-code: "0"
           ignore-unfixed: true
-          severity: "CRITICAL"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy Scan Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report-${{ matrix.service }}
+          path: trivy-report-${{ matrix.service }}.json
+          if-no-files-found: warn
 
       - name: Push Container Image to Registry
         if: success()
