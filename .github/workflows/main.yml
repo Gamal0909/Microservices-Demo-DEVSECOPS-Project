@@ -23,16 +23,22 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: dorny/paths-filter
         id: filter
         uses: dorny/paths-filter@v4
         with:
           filters: |
-            cart: 'app/cart-service-node/**'
-            frontend: 'app/frontend/**'
-            inventory: 'app/inventory-service-go/**'
-            product: 'app/product-service-java/**'
+            cart:
+              - 'app/cart-service-node/**'
+            frontend:
+              - 'app/frontend/**'
+            inventory:
+              - 'app/inventory-service-go/**'
+            product:
+              - 'app/product-service-java/**'
 
   scan-frontend-and-cart-node:
     needs: detect-changes
