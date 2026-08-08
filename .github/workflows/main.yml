@@ -48,15 +48,8 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js with npm cache
-        if: ${{ needs.detect-changes.outputs.cart == 'true' || needs.detect-changes.outputs.frontend == 'true' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: |
-            app/cart-service-node/package-lock.json
-            app/frontend/package-lock.json
+      - name: Create sonar-report directory
+        run: mkdir -p ${{ github.workspace }}/sonar-report
 
       - name: sonarqube scan-frontend
         if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
@@ -109,7 +102,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: setup java 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
