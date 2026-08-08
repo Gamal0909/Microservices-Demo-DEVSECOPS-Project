@@ -183,6 +183,4 @@ terraform.log
 .terraform/
 .terraform.lock.hcl
 .terraform-version
-*terraform/  
-#tmp
-helm/
+*terraform/
