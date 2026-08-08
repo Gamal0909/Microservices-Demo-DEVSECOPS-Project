@@ -12,6 +12,8 @@ spec:
       labels:
         app: product-app
     spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
       containers:
         - name: product-container
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}

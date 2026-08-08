@@ -1,3 +1,5 @@
+imagePullSecret: ghcr-pull-secret
+
 replicaCount: 1
 
 image:
