@@ -20,3 +20,9 @@ variable "key_name" {
   type = string
   default = "devsecops-key"
 }
+
+variable "cluster_admin_arns" {
+  description = "List of IAM user/role ARNs to grant cluster-admin access to the EKS cluster"
+  type        = list(string)
+  default     = []
+}

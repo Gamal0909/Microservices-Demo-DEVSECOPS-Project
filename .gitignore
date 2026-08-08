@@ -146,6 +146,8 @@ vite.config.ts.timestamp-*
 terraform.tfstate
 terraform.tfstate.backup
 terraform.log
-.terraform/
 .terraform.lock.hcl
 .terraform-version
+.terraform
+#tmp
+helm/
