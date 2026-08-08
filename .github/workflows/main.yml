@@ -108,12 +108,18 @@ jobs:
           java-version: "17"
           cache: "maven"
 
-      - name: Build & SonarQube Scan Product Service
+      - name: Build & Test Product Service
         if: ${{ needs.detect-changes.outputs.product == 'true' }}
         run: |
           mkdir -p ${{ github.workspace }}/sonar-report
           cd app/product-service-java
-          mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn clean verify
+
+      - name: SonarQube Scan - Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        run: |
+          cd app/product-service-java
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.projectKey=ecommerce-microservices \
             -Dsonar.projectName=ecommerce-microservices \
@@ -169,7 +175,13 @@ jobs:
           if-no-files-found: warn
 
   build-and-scan-containers:
-    needs: [detect-changes, scan-frontend-and-cart-node, scan-product-java, scan-inventory-go]
+    needs:
+      [
+        detect-changes,
+        scan-frontend-and-cart-node,
+        scan-product-java,
+        scan-inventory-go,
+      ]
     if: |
       always() &&
       !failure() &&
