@@ -1,0 +1,19 @@
+{
+  "name": "cart-service-node",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Cart API with Prometheus metrics",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.3",
+    "prom-client": "^15.1.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

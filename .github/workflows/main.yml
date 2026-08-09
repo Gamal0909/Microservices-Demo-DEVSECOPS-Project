@@ -1,0 +1,260 @@
+name: CICD
+on:
+  push:
+    branches:
+      - kubernetes-files
+      - containerized-App
+
+  pull_request:
+    branches:
+      - main
+      - containerized-App
+
+  workflow_dispatch:
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      cart: ${{ steps.filter.outputs.cart}}
+      frontend: ${{ steps.filter.outputs.frontend}}
+      inventory: ${{ steps.filter.outputs.inventory}}
+      product: ${{ steps.filter.outputs.product}}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: dorny/paths-filter
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            cart:
+              - 'app/cart-service-node/**'
+            frontend:
+              - 'app/frontend/**'
+            inventory:
+              - 'app/inventory-service-go/**'
+            product:
+              - 'app/product-service-java/**'
+
+  scan-frontend-and-cart-node:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.cart == 'true' || needs.detect-changes.outputs.frontend == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Create sonar-report directory
+        run: mkdir -p ${{ github.workspace }}/sonar-report
+
+      - name: sonarqube scan-frontend
+        if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: "app/frontend"
+          args: >
+            -Dsonar.projectKey=ecommerce-microservices
+            -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=${{ github.workspace }}/sonar-report/frontend-report-task.txt
+
+      - name: Upload SonarQube Report - Frontend
+        if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-frontend
+          path: sonar-report/
+          if-no-files-found: warn
+
+      - name: sonarqube scan-cart
+        if: ${{ needs.detect-changes.outputs.cart == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: "app/cart-service-node"
+          args: >
+            -Dsonar.projectKey=ecommerce-microservices
+            -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=${{ github.workspace }}/sonar-report/cart-report-task.txt
+
+      - name: Upload SonarQube Report - Cart
+        if: ${{ needs.detect-changes.outputs.cart == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-cart
+          path: sonar-report/
+          if-no-files-found: warn
+
+  scan-product-java:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.product == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Build & Test Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        run: |
+          mkdir -p ${{ github.workspace }}/sonar-report
+          cd app/product-service-java
+          mvn clean verify
+
+      - name: SonarQube Scan - Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        run: |
+          cd app/product-service-java
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=ecommerce-microservices \
+            -Dsonar.projectName=ecommerce-microservices \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.scanner.metadataFilePath=${{ github.workspace }}/sonar-report/product-report-task.txt
+
+      - name: Upload SonarQube Report - Product Service
+        if: ${{ needs.detect-changes.outputs.product == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-product
+          path: sonar-report/
+          if-no-files-found: warn
+
+  scan-inventory-go:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.inventory == 'true' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: app/inventory-service-go/go.sum
+
+      - name: Build & Unit Test Inventory Service
+        if: ${{ needs.detect-changes.outputs.inventory == 'true' }}
+        run: |
+          cd app/inventory-service-go
+          go test -short -coverprofile=coverage.out ./...
+
+      - name: SonarCloud Scan - Inventory Service
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: "app/inventory-service-go"
+          args: >
+            -Dsonar.projectKey=ecommerce-microservices
+            -Dsonar.projectName=ecommerce-microservices
+            -Dsonar.scanner.metadataFilePath=${{ github.workspace }}/sonar-report/inventory-report-task.txt
+
+      - name: Upload SonarQube Report - Inventory Service
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report-inventory
+          path: sonar-report/
+          if-no-files-found: warn
+
+  build-and-scan-containers:
+    needs:
+      [
+        detect-changes,
+        scan-frontend-and-cart-node,
+        scan-product-java,
+        scan-inventory-go,
+      ]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: cart-service-node
+            directory: app/cart-service-node
+            image_name: cart-service
+          - service: inventory-service-go
+            directory: app/inventory-service-go
+            image_name: inventory-service
+          - service: product-service-java
+            directory: app/product-service-java
+            image_name: product-service
+          - service: frontend
+            directory: app/frontend
+            image_name: frontend-service
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set lowercase registry owner
+        run: echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.directory }}
+          file: ${{ matrix.directory }}/Dockerfile
+          load: true # Loads image into local Docker daemon for scanning
+          tags: |
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:latest
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+
+      - name: Trivy Scan Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}"
+          format: "json"
+          output: "trivy-report-${{ matrix.service }}.json"
+          exit-code: "0"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy Scan Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report-${{ matrix.service }}
+          path: trivy-report-${{ matrix.service }}.json
+          if-no-files-found: warn
+
+      - name: Push Container Image to Registry
+        if: success()
+        run: |
+          docker push ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:${{ github.sha }}
+          docker push ghcr.io/${{ env.OWNER }}/${{ matrix.image_name }}:latest

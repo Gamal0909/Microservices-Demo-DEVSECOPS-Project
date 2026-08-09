@@ -1,0 +1,21 @@
+replicaCount: 2
+
+image:
+  repository: postgres
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  name: postgres-service
+  port: 5432
+  targetPort: 5432
+
+storage:
+  storageClassName: "gp2"
+  size: "1Gi"
+
+# DB credentials — override with real base64-encoded values or use external secrets
+secret:
+  postgresUser: YWRtaW4K
+  postgresPassword: YWRtaW4K
+  postgresDb: cG9zdGdyZXMtZGIK

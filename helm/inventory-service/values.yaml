@@ -1,0 +1,23 @@
+imagePullSecret: ghcr-pull-secret
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/gamal0909/inventory-service
+  pullPolicy: Always
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8083
+  targetPort: 8083
+
+resources:
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 10
+  cpuUtilization: 80
