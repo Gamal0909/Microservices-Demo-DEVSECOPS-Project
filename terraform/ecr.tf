@@ -12,5 +12,5 @@ resource "aws_ecr_repository" "ecr-repo" {
     Name        = each.value
     Environment = var.environment
   }
-  
+
 }
